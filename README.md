@@ -43,8 +43,12 @@ including more information about specific variables that can be configured for t
 | sf_ignore_teamdctl_abrt_cores   | No       | True                                          | Ignore teamdctl cores      | In ABRT                                       |
 
 
-\[1\] = `http://<server><:port>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm`
+\[1\]:
+URL : `http://<server><:port>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm` or
+local path : `/<downloaded rpm path on Control node >/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm`
 
+Example of URL: `http://<server><:port>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm`
+Example of local path: `/tmp/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm`
 
 Example Playbook
 ----------------

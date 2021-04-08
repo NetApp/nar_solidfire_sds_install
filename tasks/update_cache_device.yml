@@ -1,0 +1,31 @@
+---
+# Replace raw cache_device name with by_id/by_uuid before start of solidfire_service
+- name: Find cache device's by-id path
+  set_fact:
+    found_device: "/dev/disk/by-id/{{ cdev_info.value[0] }}"
+  loop: "{{ ansible_facts['device_links']['ids'] | dict2items }}"
+  loop_control:
+    loop_var: cdev_info
+  when:
+    - cdev_info.key == cache_devices[0]|basename
+    - cdev_info.value[0] is defined
+  delegate_to: localhost
+  no_log: True
+
+- name: Find cache device's by-uuid path
+  set_fact:
+    found_device: "/dev/disk/by-uuid/{{ cdev_info.value[0] }}"
+  loop: "{{ ansible_facts['device_links']['uuids'] | dict2items }}"
+  loop_control:
+    loop_var: cdev_info
+  when:
+    - cdev_info.key == cache_devices[0]|basename
+    - found_device is not defined
+    - cdev_info.value[0] is defined
+  delegate_to: localhost
+  no_log: True
+
+- set_fact:
+    cache_devices: ['{{ found_device }}']
+  when:
+    - found_device is defined
