@@ -10,7 +10,7 @@
   tags:
     - always
 
-- name: Ensure we can find the SolidFire Enterprise SDS package to install
+- name: Ensure the SolidFire eSDS RPM path is specified
   fail:
     msg: "Configure the SolidFire eSDS RPM location (solidfire_element_rpm)"
   when: solidfire_element_rpm is undefined or not solidfire_element_rpm
@@ -19,21 +19,6 @@
   fail:
     msg: "The na_sf_filename variable has not been configured"
   when: na_sf_filename is undefined or not na_sf_filename
-
-- name: Ensure the SolidFire eSDS RPM is available for download
-  when: >
-    solidfire_element_rpm is defined and solidfire_element_rpm is match( 'http|ftp' )
-  uri:
-    url: "{{ solidfire_element_rpm }}"
-    method: HEAD
-    validate_certs: "{{ na_sf_validate_certs | bool }}"
-    use_proxy: "{{ na_sf_use_proxy | bool }}"
-#    status_code: 200
-    force: yes
-    follow_redirects: safe
-  register: rpm_test
-  # We'll fail the role if status is unexpected
-  failed_when: rpm_test.status is undefined or rpm_test.status >= 400
 
 - name: Ensure we have the management interface specified
   fail:

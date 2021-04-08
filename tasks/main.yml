@@ -10,8 +10,11 @@
     (sf_node_facts is undefined or
     (sf_node_facts is defined and not sf_node_facts))
 
-- name: Make sure all required variables are defined
+- name: Ensure all required variables are defined
   include_tasks: verify-variables.yml
+
+- name: Ensure the NetApp eSDS RPM is valid
+  include_tasks: validate-rpm.yml
 
 - name: Ensure we loaded the Minimum Specification Checks
   include_tasks: ./min-specification/min-specification-checks.yml
@@ -19,8 +22,11 @@
     na_sf_deactivate_checks is undefined or
     (na_sf_deactivate_checks is defined and not na_sf_deactivate_checks)
 
-- name: Make sure the NetApp eSDS RPM is installed
+- name: Ensure the NetApp eSDS RPM is installed
   include_tasks: install-rpm.yml
+
+- name: update the raw cache device name with by_id/by_uuid
+  include_tasks: update_cache_device.yml
 
 - name: Ensure the NetApp eSDS environment is configured
   include_tasks: update-config.yml

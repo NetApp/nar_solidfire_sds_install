@@ -17,7 +17,9 @@
     sf_found_data_devices: []
     sf_disk_list: []
     sf_node_dev_ids: []
+    sf_node_dev_partition_ids: []
     sf_node_dev_uuids: []
+    sf_node_dev_partitions: []
     sf_by_id_rawdevs: []
     sf_by_uuid_rawdevs: []
     sf_storage_dev_list: "{{
@@ -95,11 +97,20 @@
     sf_node_devices: "{{ sf_node_facts['devices'].keys()|list }}"
   no_log: True
 
-# Add list of disk devices for comparison with by-id paths
+# Add list of disk devices for comparison with by-id paths (doesn't include partitions)
 - set_fact:
     sf_node_dev_ids: "{{ sf_node_dev_ids + sf_node_facts['devices'][device_name]['links']['ids'] }}"
   when: sf_node_facts['devices'][device_name] is defined and
     (sf_node_facts['devices'][device_name]['partitions']|length|int) == 0
+  loop_control:
+    loop_var: device_name
+  loop: "{{ sf_node_facts['device_links']['ids'].keys()|list }}"
+  no_log: True
+
+# Add list of disk devices for comparison with by-id paths (includes only partitions)
+- set_fact:
+    sf_node_dev_partition_ids: "{{ sf_node_dev_partition_ids + sf_node_facts['device_links']['ids'][device_name] }}"
+  when: sf_node_facts['device_links']['ids'][device_name] | difference(sf_node_dev_ids)  # b | diff(a) => b not in a
   loop_control:
     loop_var: device_name
   loop: "{{ sf_node_facts['device_links']['ids'].keys()|list }}"
@@ -111,6 +122,15 @@
   loop_control:
     loop_var: device_name
   loop: "{{ sf_node_facts['device_links']['uuids'].keys()|list }}"
+  no_log: True
+
+# # Add list of disk device partitions
+- set_fact:
+    sf_node_dev_partitions: "{{ sf_node_dev_partitions + sf_node_facts['devices'][device_name]['partitions'].keys()|list }}"
+  when: (sf_node_facts['devices'][device_name]['partitions']|length|int) >= 1
+  loop_control:
+    loop_var: device_name
+  loop: "{{ sf_node_facts['devices'].keys()|list }}"
   no_log: True
 
 # Figure out how much memory the node has
@@ -210,6 +230,24 @@
 - set_fact:
     sf_found_cache_devices: "{{ sf_found_cache_devices + [cache_dev] }}"
   when: cache_devices|length >= 1 and (cache_dev|basename) in sf_node_dev_uuids
+  loop_control:
+    loop_var: cache_dev
+  loop: "{{ cache_devices }}"
+  no_log: True
+
+- set_fact:
+    sf_found_cache_devices: "{{ sf_found_cache_devices + [cache_dev] }}"
+  when:
+    - cache_devices|length >= 1 and (cache_dev|basename) in sf_node_dev_partitions
+  loop_control:
+    loop_var: cache_dev
+  loop: "{{ cache_devices }}"
+  no_log: True
+
+- set_fact:
+    sf_found_cache_devices: "{{ sf_found_cache_devices + [cache_dev] }}"
+  when:
+    - cache_devices|length >= 1 and (cache_dev|basename) in sf_node_dev_partition_ids
   loop_control:
     loop_var: cache_dev
   loop: "{{ cache_devices }}"
