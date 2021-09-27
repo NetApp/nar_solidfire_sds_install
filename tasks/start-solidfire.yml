@@ -1,9 +1,22 @@
 ---
-- name: "Ensure the SolidFire eSDS service is {{ na_sf_sds_service_state }}"
-  become: True
-  systemd:
-    daemon_reload: yes
-    force: yes
-    name: solidfire
-    state: "{{ na_sf_sds_service_state }}"
-    enabled: yes
+- name: Start SolidFire service
+  block:
+    - name: "Ensure the SolidFire eSDS service is {{ na_sf_sds_service_state }}"
+      become: True
+      systemd:
+        daemon_reload: yes
+        force: yes
+        name: solidfire
+        state: "{{ na_sf_sds_service_state }}"
+        enabled: yes
+      register: systemd_result
+  rescue:
+    - shell: journalctl -x -n 55 -u solidfire.service
+      register: journalctl_output
+
+    - name: Display journalctl output if element RPM installed and Solidfire service fails to start
+      debug:
+        msg: "{{ journalctl_output.stdout_lines }}"
+
+    - fail:
+        msg: "solidfire-element is installed but solidfire service failed to start"

@@ -4,9 +4,9 @@
   delegate_to: localhost
   assert:
     that:
-      - ansible_version['full'] is version('2.9.0', '>=')
+      - ansible_version['full'] is version('2.10.0', '>=')
     fail_msg: >
-      "Error: Please upgrade the controller to a supported version of Ansible, i.e. >= 2.9.0"
+      "Error: Please upgrade the controller to a supported version of Ansible, i.e. >= 2.10.0"
   tags:
     - always
 

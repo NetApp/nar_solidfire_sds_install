@@ -1,5 +1,5 @@
 ---
-- name: Ensure the NetApp eSDS package is installed on the host
+- name: Ensure the SolidFire eSDS package is installed on the host
   when: solidfire_element_rpm_path is defined
   yum:
     name: "{{ solidfire_element_rpm_path }}"

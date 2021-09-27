@@ -13,7 +13,7 @@
 - name: Ensure all required variables are defined
   include_tasks: verify-variables.yml
 
-- name: Ensure the NetApp eSDS RPM is valid
+- name: Ensure the SolidFire eSDS RPM is valid
   include_tasks: validate-rpm.yml
 
 - name: Ensure we loaded the Minimum Specification Checks
@@ -22,14 +22,14 @@
     na_sf_deactivate_checks is undefined or
     (na_sf_deactivate_checks is defined and not na_sf_deactivate_checks)
 
-- name: Ensure the NetApp eSDS RPM is installed
+- name: Ensure the SolidFire eSDS RPM is installed
   include_tasks: install-rpm.yml
 
 - name: update the raw cache device name with by_id/by_uuid
   include_tasks: update_cache_device.yml
 
-- name: Ensure the NetApp eSDS environment is configured
+- name: Ensure the SolidFire eSDS environment is configured
   include_tasks: update-config.yml
 
-- name: "Ensure the NetApp eSDS service management is loaded"
+- name: "Ensure the SolidFire eSDS service management is loaded"
   include_tasks: start-solidfire.yml

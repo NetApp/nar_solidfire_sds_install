@@ -1,5 +1,5 @@
 ---
-- name: Ensure the path to the RPM is clean (no quotes)
+- name: Ensure the path to the RPM file is clean (no quotes)
   set_fact:
     # Leave this Jinja2 variable handler be. It's fixing potential issues
     # with the received URI or file name that makes it difficult to install
@@ -18,34 +18,37 @@
     (solidfire_element_rpm is defined and
     solidfire_element_rpm)
 
-- name: Ensure the path to the RPM is clean (no CR/LF/space)
+- name: Ensure the path to the RPM file is clean (no CR/LF/space)
   # This is also fixing potential issues with the received URI or file name
   # that makes it difficult to install. I.e. extra CR/LF, LF, whitespace
   set_fact:
     solidfire_element_rpm_path: '{{ solidfire_element_rpm_path|regex_replace("\s+","") }}'
 
-- debug:
-    msg: "Installing from: '{{ solidfire_element_rpm_path }}'"
+- name: Ensure we know the RPM path
+  debug:
+    var: solidfire_element_rpm_path
 
-- name: Ensure local copy of RPM is available when not using FTP/HTTP source
+- name: Handle local RPM file
   when: >
     solidfire_element_rpm_path is defined and
     solidfire_element_rpm_path is not search( 'http|ftp' )
   block:
-    - name: Ensure local copy of RPM file is available
+    - name: Ensure local RPM file on controller is copied to each node when not using FTP/HTTP source
       copy:
         src: "{{ solidfire_element_rpm }}"
         dest: "{{ solidfire_element_rpm_path }}"
 
-    - stat:
+    - name: Ensure we verify the RPM file status on each node
+      stat:
         path: "{{ solidfire_element_rpm_path }}"
       register: sf_downloaded
 
-    - fail:
+    - name: Ensure we fail if the RPM file is not copied
+      fail:
         msg: "Error: Unable to locate the RPM file on {{ ansible_hostname }}!"
       when: not sf_downloaded.stat.exists
 
-- name: Ensure RPM file is downloadable via URL
+- name: Ensure RPM file is downloadable if URL path is given
   any_errors_fatal: True
   when: >
     solidfire_element_rpm_path is defined and
