@@ -1,22 +1,56 @@
 ---
 - name: Start SolidFire service
+  become: True
   block:
-    - name: "Ensure the SolidFire eSDS service is {{ na_sf_sds_service_state }}"
+    - name: "Reload daemon to bring SolidFire eSDS service to '{{ desired_state }}' state"
       become: True
       systemd:
         daemon_reload: yes
         force: yes
         name: solidfire
-        state: "{{ na_sf_sds_service_state }}"
+        state: "{{ desired_state }}"
         enabled: yes
-      register: systemd_result
+
+    - name: "Waiting for SolidFire eSDS service to be ready"
+      pause:
+        seconds: 60
+  
+    - name: "Check SolidFire eSDS service state"
+      command: systemctl is-active solidfire
+      register: systemd_status 
+      
+    - debug:
+        var: systemd_status
+
+    - name: Ensure we fail if the SolidFire eSDS service failed to restart
+      fail:
+        msg: "SolidFire eSDS service failed to restart properly. Check '/opt/sf/persist/var/log/sf-elementctl.info'"
+      when: systemd_status.rc != 0 or systemd_status.stdout not in "active"
+      
+    - name: "Check status of containers"
+      become: True
+      command: podman ps -a
+      register: podman_status
+
+    - debug:
+        var: podman_status.stdout_lines
+
+    - name: "Ensure we fail if any container is not up and running"
+      fail:
+        msg: "Not all containers are running. Check '/opt/sf/persist/var/log/sf-elementctl.info'"
+      when: >
+        podman_status.stdout_lines|length < 4 or
+        (podman_status.stdout|regex_findall('Up '))|length < 3 or
+        podman_status.stdout is not search('sfnetwd') or
+        podman_status.stdout is not search('element_auth') or
+        podman_status.stdout is not search('element')
+
   rescue:
-    - shell: journalctl -x -n 55 -u solidfire.service
+    - name: Retrieve some journalctl logs after failure is detected
+      shell: journalctl -x -n 55 -u solidfire.service
       register: journalctl_output
 
-    - name: Display journalctl output if element RPM installed and Solidfire service fails to start
+    - name: Print some journalctl logs after failure is detected
       debug:
-        msg: "{{ journalctl_output.stdout_lines }}"
-
-    - fail:
-        msg: "solidfire-element is installed but solidfire service failed to start"
+        var: journalctl_output.stdout_lines
+      failed_when: True

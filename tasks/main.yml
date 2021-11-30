@@ -1,4 +1,9 @@
 ---
+- name: Load version check tasks
+  include_role:
+    name: nar_solidfire_sds_compliance
+    tasks_from: check_ansible_version.yml
+
 - name: Ensure teamdctl cores are ignored in ABRT
   include_tasks: ignore-teamdctl-cores-in-abrt.yml
   when: sf_ignore_teamdctl_abrt_cores
@@ -22,7 +27,7 @@
     na_sf_deactivate_checks is undefined or
     (na_sf_deactivate_checks is defined and not na_sf_deactivate_checks)
 
-- name: Ensure the SolidFire eSDS RPM is installed
+- name: Load the SolidFire eSDS RPM installation routine
   include_tasks: install-rpm.yml
 
 - name: update the raw cache device name with by_id/by_uuid
@@ -33,3 +38,5 @@
 
 - name: "Ensure the SolidFire eSDS service management is loaded"
   include_tasks: start-solidfire.yml
+  vars:
+    desired_state: "{{ na_sf_sds_service_state }}"

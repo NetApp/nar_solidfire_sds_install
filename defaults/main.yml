@@ -8,7 +8,7 @@
 na_sf_filename: "{{ solidfire_element_rpm | basename }}"
 #
 # Whether to validate SSL/TLS certificates (yes, we should)
-na_sf_validate_certs: True
+na_sf_validate_certs: False
 #
 # Whether to use the on-node proxy settings (applies to target node)
 na_sf_use_proxy: False

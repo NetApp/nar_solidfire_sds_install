@@ -18,7 +18,9 @@ Requirements
 
 * The inventory file for this role needs network addresses or FQDN information for all hosts, device names, the path to the target Element solidfire-element RPM package, and other required variables.
 
-* This role requires Python version 3.6 or later  and Ansible version 2.10 or later.
+* This role requires Python version 3.6 or later and Ansible version 2.10 or later installed on the controller.
+
+* This role requires root or superuser privilege to run.
 
 
 Role Variables
@@ -30,19 +32,19 @@ Role Variables
 * storage_devices:
   This must be a list of full paths (/dev/device-name, /dev/disk/by-id/<device-id> or /dev/disk/by-uuid/<device-uuid>) for devices that will be used for data storage by eSDS.  The product requires at least two of these drives.
 
-| Variable              | Required | Default | Description                | Comments                  |
-|-----------------------|----------|---------|----------------------------|---------------------------|
-| solidfire_element_rpm | yes*     | N/A     | URL or local path for RPM  | See the example below [1] |
-| mgmt_iface            | yes      | N/A     | Valid NIC iface name       | Redundant NIC (team/bond) |
-| storage_iface         | yes      | N/A     | Valid NIC iface name       | Redundant NIC (team/bond) |
-| storage_devices       | yes      | N/A     | List of storage devices    | See example in note [2]   |
-| cache_devices         | yes      | N/A     | List of cache devices      | See example in note [3]   |
-| na_sf_validate_certs  | no       | True    | Check SSL/TLS certificates |                           |
-| na_sf_use_proxy       | no       | False   | Use proxy config on hosts  |                           |
+| Variable              | Required | Default | Description                   | Comments                  |
+|-----------------------|----------|---------|-------------------------------|---------------------------|
+| solidfire_element_rpm | yes*     | N/A     | URL or local path for RPM     | See the example below [1] |
+| mgmt_iface            | yes      | N/A     | Valid NIC iface name          | Redundant NIC (team/bond) |
+| storage_iface         | yes      | N/A     | Valid NIC iface name          | Redundant NIC (team/bond) |
+| storage_devices       | yes      | N/A     | List of storage devices       | See example in note [2]   |
+| cache_devices         | yes      | N/A     | List of cache devices         | See example in note [3]   |
+| na_sf_validate_certs  | no       | False   | Validate SSL/TLS certificates |                           |
+| na_sf_use_proxy       | no       | False   | Use proxy config on hosts     |                           |
 
 
 Notes:
-======
+------
 [1]:
 ```
 Example of URL: `http://<server><:port>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm`
@@ -64,38 +66,83 @@ Examples of cache_devices:
 ```
 
 Example Playbook
-================
+----------------
 ```
  - name: Install SolidFire Enterprise SDS
-   hosts: all
+   remote_user: <root or superuser>
    gather_facts: True
-
+   hosts: all
    roles:
      - role: nar_solidfire_sds_install
-       vars:
-         solidfire_element_rpm: http://<server>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm
-         mgmt_iface: mgmt_t0
-         storage_iface: strg_t1
-         storage_devices:
-           - "/dev/nvme0n1"
-           - "/dev/nvme2n1"
-           - "/dev/nvme3n1"
-           - "/dev/nvme4n1"
-           - "/dev/nvme5n1"
-           - "/dev/nvme6n1"
-           - "/dev/nvme7n1"
-           - "/dev/nvme8n1"
-           - "/dev/nvme9n1"
-         cache_devices:
-           - "/dev/nvme1n1"
+```
+
+Example Inventory
+-----------------
+```
+all:
+  hosts:
+    DL360:
+      ansible_host: <DL360 IP>
+      storage_devices:
+        - "/dev/nvme0n1"
+        - "/dev/nvme1n1"
+        - "/dev/nvme2n1"
+        - "/dev/nvme3n1"
+        - "/dev/nvme4n1"
+        - "/dev/nvme5n1"
+        - "/dev/nvme7n1"
+        - "/dev/nvme8n1"
+        - "/dev/nvme9n1"
+      cache_devices:
+        - "/dev/nvme6n1"
+    DL380:
+      ansible_host: <DL380 IP>
+      storage_devices:
+        - "/dev/nvme0n1"
+        - "/dev/nvme1n1"
+        - "/dev/nvme2n1"
+        - "/dev/nvme3n1"
+        - "/dev/nvme4n1"
+        - "/dev/nvme5n1"
+        - "/dev/nvme7n1"
+        - "/dev/nvme8n1"
+        - "/dev/nvme9n1"
+        - "/dev/nvme10n1"
+        - "/dev/nvme11n1"
+        - "/dev/nvme12n1"
+        - "/dev/nvme13n1"
+        - "/dev/nvme14n1"
+      cache_devices:
+        - "/dev/nvme6n1"
+    R640:
+      ansible_host: <R640 IP>
+      storage_devices:
+        - "/dev/nvme0n1"
+        - "/dev/nvme1n1"
+        - "/dev/nvme2n1"
+        - "/dev/nvme3n1"
+        - "/dev/nvme4n1"
+        - "/dev/nvme6n1"
+        - "/dev/nvme7n1"
+        - "/dev/nvme8n1"
+        - "/dev/nvme9n1"
+      cache_devices:
+        - "/dev/nvme5n1"
+  vars:
+    ansible_python_interpreter: <full path on target hosts to a python interpreter, such as /usr/libexec/platform-python>
+    become: True
+    ansible_password: <login user password> # prefer vault key
+    ansible_become_pass: <privilege escalation password> # or --ask-become-pass on command line to prompt for input
+    solidfire_element_rpm: http://<server>/<path>/solidfire-element-W.X.Y.Z-N.el{7,8}.x86_64.rpm
+    mgmt_iface: mgmt_t0
+    storage_iface: strg_t1
 ```
 
 License
-=======
-
+-------
 GNU v3
 
 Author Information
-==================
+------------------
 NetApp
 https://www.netapp.com

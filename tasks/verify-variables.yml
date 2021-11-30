@@ -1,14 +1,5 @@
 ---
 # Test all required variables for presence and value
-- name: Ensure the required minimum version of Ansible is being used
-  delegate_to: localhost
-  assert:
-    that:
-      - ansible_version['full'] is version('2.10.0', '>=')
-    fail_msg: >
-      "Error: Please upgrade the controller to a supported version of Ansible, i.e. >= 2.10.0"
-  tags:
-    - always
 
 - name: Ensure the SolidFire eSDS RPM path is specified
   fail:
